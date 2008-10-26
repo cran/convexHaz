@@ -13,8 +13,8 @@ estimator (LSE) of a convex hazard function, assuming that the data is IID.
 \details{
 \tabular{ll}{
 Package: \tab convexHaz\cr
-Version: \tab 0.0\cr
-Date: \tab 2008-06-13\cr
+Version: \tab 0.1\cr
+Date: \tab 2008-10-27\cr
 Depends: \tab R (>= 2.4)\cr
 License: \tab GPL (version 2 or later)\cr
 Built: \tab R 2.7.1; ; 2008-09-02 13:05:46; windows\cr
@@ -35,7 +35,7 @@ srMLE                   Compute the MLE of a convex hazard with fixed
 }
 }
 \author{
-Hanna Jankowski: \email{hkj@mathstat.yorku.ca}, Ivy Wang, Hugh McCague, Jon A. Wellner
+Hanna Jankowski, Ivy Wang, Hugh McCague, Jon A. Wellner
 
 Maintainer: Hanna Jankowski <hkj@mathstat.yorku.ca>
 }

@@ -8,9 +8,9 @@ convexLSE <- function(x, TT, M = 100, GRIDLESS=0, tol =1e-5, tol.SR=1e-8, type=1
 	if(type==1) delta.F<- function(x, xold) sum((x-min(x))^2)
    	if(type==2) delta.F<- function(x, xold) sqrt(sum((x - xold)^2))
    	if(type==3) delta.F<- function(x, xold) sort(x)[2]+sort(x)[3]-2*sort(x)[1]
-
-	sink(file="convexLSE.out", append=TRUE, type="output", split=FALSE)
-	cat("phi","antimode","conv","\n")
+	
+	zzz <- file("convexLSE.out", "w")
+	cat("phi","antimode","conv","\n", file=zzz)
 	
 	m 		<- (range[2]-range[1])*(0:4)/4+range[1]
 	phi.vec 	<- rep(0,5)
@@ -21,7 +21,7 @@ convexLSE <- function(x, TT, M = 100, GRIDLESS=0, tol =1e-5, tol.SR=1e-8, type=1
 		temp 		 <- 	srLSE(x, m[i], TT, M, GRIDLESS, tol, max.loop.SR, print=0, solve.tol)
 		temp.vec[i]  <-   list(temp)
 		phi.vec[i] <- 	temp$ls
-		cat(phi.vec[i], m[i], temp$conv,"\n")
+		cat(phi.vec[i], m[i], temp$conv,"\n", file=zzz)
 		}
 
 	phi.delta <- delta.F(phi.vec, rep(10,5))
@@ -58,14 +58,14 @@ convexLSE <- function(x, TT, M = 100, GRIDLESS=0, tol =1e-5, tol.SR=1e-8, type=1
 		temp		 	<- 	srLSE(x, m[2*i], TT, M, GRIDLESS, tol, max.loop.SR, print=0, solve.tol)
 		temp.vec[2*i]     <-	list(temp)
 		phi.vec[2*i] 	<- 	temp$ls
-		cat(phi.vec[2*i], m[2*i], temp$conv,"\n")
+		cat(phi.vec[2*i], m[2*i], temp$conv,"\n", file=zzz)
 		}
 
 	phi.delta <- delta.F(phi.vec, phi.vec.old)
 
 	} # end loop	
 
-	sink()
+	close(zzz)
 
 	j0 <- which(phi.vec == min(phi.vec))
 	if(length(j0)==5)  j0 <- j0[3]

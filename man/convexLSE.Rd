@@ -72,7 +72,7 @@ A list which includes
 	number of iterations of the bisection algorithm.
 	}
   \item{"convexLSE.out"}{
-	The algorithm also creates a file called \code{convexLSE.out} in R's current working directory.  The file contains three variables:  (1) \code{phi} the value of the smallest least squares criterion function at the antimode found by the support reduction algorithm, (2) \code{antimode} the value of the antimode, and (3) \code{conv} a boolean indicating if the support reduction algorithm converged.  If \code{convexLSE.out} already exists, then the algorithm simply appends to it.
+	The algorithm also creates a file called \code{convexLSE.out} in R's current working directory.  The file contains three variables:  (1) \code{phi} the value of the smallest least squares criterion function at the antimode found by the support reduction algorithm, (2) \code{antimode} the value of the antimode, and (3) \code{conv} a boolean indicating if the support reduction algorithm converged.  If \code{convexLSE.out} already exists, then the algorithm will overwrite it.  
 	}
 }
 \references{
@@ -95,8 +95,6 @@ If the bisection algorithm fails to converge, then \code{max.loop} may be increa
 Alternatively, the support reduction algorithm may fail to converge.  The file \code{"convexLSE.out"} shows which of the calls of the support reduction algorithm by the bisection loop converged.  If too many of these failed, then changing the values of \code{max.loop}, \code{max.loop.SR}, or \code{solve.tol} may fix this.
 
 At each iteration, the support reduction algorithm does a finite dimensional quadratic optimization using the function \code{solve()}.  Occasionally (quite rarely for the LSE), the matrix passed to \code{solve()} is computationally singular.  Several built-in catches exist in the code to handle this, but if the problem occurs too frequently, the algorithm will abort.  In fact, this is by far the most common cause of nonconvergence.  The larger the value of \code{M}, the more likely the problem is, but this also depends on the data set.  Setting \code{solve.tol} to a smaller value may fix the problem.  
-
-If the algorithm is interrupted, one should type \code{sink()} on the R command line, so that output will no longer be sent to the file \code{convexLSE.out}.
 }
 \seealso{\code{\link{convexMLE}} \code{\link{srLSE}} \code{\link{srMLE}} \code{\link{h}}}
 \examples{

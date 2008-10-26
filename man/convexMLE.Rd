@@ -63,7 +63,7 @@ The support reduction algorithm was first described in Groeneboom, Jongbloed and
 	number of iterations of the bisection algorithm.
 	}
   \item{"convexMLE.out"}{
-	The algorithm also creates a file called \code{convexMLE.out} in R's current working directory.  The file contains three variables:  (1) \code{negllh} the value of the smallest least squares criterion function at the antimode found by the support reduction algorithm, (2) \code{antimode} the value of the antimode, and (3) \code{conv} a boolean indicating if the support reduction algorithm converged.  If \code{convexMLE.out} already exists, then the algorithm simply appends to it.
+	The algorithm also creates a file called \code{convexMLE.out} in R's current working directory.  The file contains three variables:  (1) \code{negllh} the value of the smallest least squares criterion function at the antimode found by the support reduction algorithm, (2) \code{antimode} the value of the antimode, and (3) \code{conv} a boolean indicating if the support reduction algorithm converged.  If \code{convexMLE.out} already exists, then the algorithm will overwrite it.  
 	}
 }
 \references{
@@ -87,8 +87,6 @@ If the bisection algorithm fails to converge, then \code{max.loop} may be increa
 Alternatively, the support reduction algorithm may fail to converge.  The file \cr \code{"convexMLE.out"} shows which of the calls of the support reduction algorithm by the bisection loop converged.  If too many of these failed, then changing the values of \cr \code{max.inner.loop.SR}, \code{max.outer.loop.SR}, \code{solve.tol} or \code{ini.LSE} may fix this.  Increasing \code{max.inner.loop.SR} or \code{max.outer.loop.SR} gives the algorithms more time to converge, though it is rare that this is the cause of the problem.  Setting \code{ini.LSE} changes the starting point of the support reduction algorithm, and may even increase its speed.
 
 At each iteration, the support reduction algorithm does a finite dimensional quadratic optimization using the function \code{solve()}.  Occasionally, the matrix passed to \code{solve()} is computationally singular.  Several built-in catches exist in the code to handle this, but if the problem occurs too frequently, the algorithm will abort.  In fact, this is by far the most common cause of nonconvergence.  The larger the value of \code{M}, the more likely the problem is, but this also depends on the data set.  Also, choosing \code{GRIDLESS=1} highly increases the probability that this type of problem will occur.   Setting \code{solve.tol} to a smaller value may fix the problem.  
-
-If the algorithm is interrupted, one should type \code{sink()} on the R command line, so that output will no longer be sent to the file \code{convexMLE.out}.
 }
 \seealso{\code{\link{convexLSE}} \code{\link{hazard}} \code{\link{srLSE}} \code{\link{srMLE}}}
 \examples{
@@ -110,7 +108,7 @@ plot(diag$antimode, diag$negllh, pch=16, col="blue", main="diagnostics", ylab="p
 
 
 # plot the true hazard function and the lse
-h.true 	<- function(x) pbeta(x, 0.5, 0.5)/(1-dbeta(x, 0.5, 0.5))
+h.true 	<- function(x) dbeta(x, 0.5, 0.5)/(1-pbeta(x, 0.5, 0.5))
 tt	<- c(0,sort(mle$mle$supp$tau), sort(mle$mle$supp$eta), max(x))
 yy	<- sapply(tt, h, supp=mle$mle$supp, hpar=mle$mle$mix)
 

@@ -66,7 +66,7 @@ In addition, changing the starting point of the algorithm may help, which is don
 \seealso{\code{\link{convexLSE}} \code{\link{convexMLE}} \code{\link{hazard}} \code{\link{srLSE}}} 
 \examples{
 # Generate sample data:
-set.seed(1111, kind="default")
+set.seed(3333, kind="default")
 x 	<- rweibull(50, 3) 
 
 # Find the LSE with antimode a=0 over the range [0,1]:

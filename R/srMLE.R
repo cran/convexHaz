@@ -62,7 +62,7 @@ srMLE <- function(x, a, M = 100, GRIDLESS=0, ini.LSE=0, tol=1e-8, max.inner.loop
 
 		cur.supp <-	supp
 		cur.par  <-	hpar
-		cur.vec  <- sapply(xx, h, supp=cur.supp, hpar=cur.par)
+		cur.vec  <- 	sapply(xx, h, supp=cur.supp, hpar=cur.par)
 		
 		for (j in 1 : max.inner.loop) {  
  
@@ -321,7 +321,7 @@ srMLE <- function(x, a, M = 100, GRIDLESS=0, ini.LSE=0, tol=1e-8, max.inner.loop
             cat("FINAL RESULT: ",i, " iterations", "\n")
 	 	cat("support: tau= ", supp$tau, " c= ", supp$constant, " eta= ", supp$eta, "\n")
 	 	cat("weights: nu= ", hpar$nu, " alpha= ", hpar$alpha, " mu= ", hpar$mu, "\n")
-		cat("log likelihood: ", -psi, "\n")
+		cat("log likelihood: ", -psi*length(xx), "\n")
 		}
 
       # if (PROBLEM == TRUE) cat("Problem occurred", "\n")
@@ -501,8 +501,10 @@ dir.der.psi.F <- function(supp, hpar, GRID1, GRID2, xx) {
 	
 	DirDer0 <- mean(xx-c(1/h.vec[1:(N-1)],0))  # MOD
 	
-	DirDer2 <- as.vector((rep(1,N)/N) %*% (mat.G2-diag(c(rep(1,N-1),0)) %*% mat.g2/h.mat2)) # MOD
-	minDirDer2 <- min(DirDer2)
+	mat.mod		<- mat.g2/h.mat2
+	mat.mod[N,]	<- rep(0, MM2)
+	DirDer2 	<- as.vector((rep(1,N)/N) %*% (mat.G2-mat.mod)) # MODMOD
+	minDirDer2 	<- min(DirDer2)
 
 	temp <- c(minDirDer1, minDirDer2, DirDer0)
 	minDirDer <- min(temp)
@@ -540,8 +542,10 @@ dir.der.psi.approx.F <- function(supp, hpar, cur.vec, GRID1, GRID2, xx) {
 	DD0.t2	<-	mean(c(1/cur.vec[1:(N-1)]^2,0))   # MOD 
 	DirDer0 	<-	if(DD0.t2>0)  DD0.t1/sqrt(DD0.t2) else Inf
 
-	DD2.t1	<-	as.vector((rep(1,N)/N) %*% (mat.G2-diag(c(rep(1,N-1),0)) %*% (2*mat.g2/cur.mat2 - mat.g2*h.mat2/(cur.mat2)^2)))  #MOD
-	DD2.t2	<-	as.vector((c(rep(1,N-1),0)/N) %*% (mat.g2/cur.mat2)^2)  #MOD
+	mat.mod1	<-	(2*mat.g2/cur.mat2 - mat.g2*h.mat2/(cur.mat2)^2)
+	mat.mod1[N,]	<-	rep(0, MM2)
+	DD2.t1		<-	as.vector((rep(1,N)/N) %*% (mat.G2-mat.mod1))  #MODMOD
+	DD2.t2		<-	as.vector((c(rep(1,N-1),0)/N) %*% (mat.g2/cur.mat2)^2)  #MOD
 	DD2		<- 	DD2.t1/sqrt(DD2.t2)
 	DD2[which(DD2=="NaN")] 	<-Inf
 	minDirDer2 	<- 	min(DD2, na.rm=TRUE)
@@ -576,17 +580,19 @@ ab.psi.F <-function(supp, cur.vec, xx){
 	mat.g2  <-  mat2.F(supp$eta, xx, 1)  
 	mat.G2  <-  mat2.F(supp$eta, xx, 2)/2
 
-	D.Y1	<- if (k>0) diag(1/cur.vec) %*% mat.g1 			else numeric()
+	mat.g2[N,]	<-  rep(0, length(supp$eta))
+
+	D.Y1	<- if (k>0) mat.g1/cur.vec 				else numeric() 	 #MODMOD
 	D.Y0	<- if (c>0) matrix(c(1/cur.vec[1:(N-1)],0), N, 1) 	else numeric()   #MOD
-	D.Y2	<- if (m>0) diag(c(1/cur.vec[1:(N-1)],0)) %*% mat.g2 	else numeric()   #MOD 
+	D.Y2	<- if (m>0) mat.g2/cur.vec 				else numeric()   #MODMOD 
 	
 
 	D.Y	<- cbind(D.Y1, D.Y0, D.Y2)
 	A	<- (t(D.Y) %*% D.Y)/N
 
-	b1	<- if (k>0) - as.vector((rep(1,N)/N) %*% (mat.G1-2*(diag(1/cur.vec)%*% mat.g1))) 				else numeric()
-	b0	<- if (c>0)   ((N-1)/N)*mean(2/cur.vec[1:(N-1)])-mean(xx) 							else numeric()  #MOD
-	b2	<- if (m>0) - as.vector((rep(1,N)/N) %*% (mat.G2-2*(diag(c(1/cur.vec[1:(N-1)],0))%*% mat.g2))) 	else numeric()  #MOD
+	b1	<- if (k>0) - as.vector((rep(1,N)/N) %*% (mat.G1-2*(mat.g1/cur.vec))) 	else numeric()  #MODMOD
+	b0	<- if (c>0)   ((N-1)/N)*mean(2/cur.vec[1:(N-1)])-mean(xx) 		else numeric()  #MOD
+	b2	<- if (m>0) - as.vector((rep(1,N)/N) %*% (mat.G2-2*(mat.g2/cur.vec))) 	else numeric()  #MODMOD
 
 	b<-c(b1,b0,b2)
 
