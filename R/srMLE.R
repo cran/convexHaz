@@ -487,21 +487,23 @@ dir.der.psi.F <- function(supp, hpar, GRID1, GRID2, xx) {
 	N	<- 	length(xx)
 
 	h.vec		<-	sapply(xx, h, supp=supp, hpar=hpar)
-	h.mat1 		<- 	matrix(h.vec, N, MM1)
-	h.mat2 		<- 	matrix(h.vec, N, MM2) 
+	h.mat1 	<- 	matrix(h.vec, N, MM1)
+	h.mat2 	<- 	matrix(h.vec, N, MM2) 
 
 	mat.g1  	<-	mat1.F(GRID1, xx, 1)
 	mat.G1  	<- 	matrix(GRID1^2, N, MM1, byrow=TRUE)/2-mat1.F(GRID1, xx, 2)/2
 	mat.g2  	<-	mat2.F(GRID2, xx, 1) 
 	mat.G2  	<- 	mat2.F(GRID2, xx, 2)/2
 
+	mat.mod	<- mat.g1/h.mat1
+	mat.mod[N,]	<- rep(0, MM1)
+
+	DirDer1 	<- as.vector((rep(1,N)/N) %*% (mat.G1-mat.mod))
+	minDirDer1 	<- min(DirDer1)		
 	
-	DirDer1 <- as.vector((rep(1,N)/N) %*% (mat.G1-mat.g1/h.mat1))
-	minDirDer1 <- min(DirDer1)		
+	DirDer0     <- mean(xx-c(1/h.vec[1:(N-1)],0))  # MOD
 	
-	DirDer0 <- mean(xx-c(1/h.vec[1:(N-1)],0))  # MOD
-	
-	mat.mod		<- mat.g2/h.mat2
+	mat.mod	<- mat.g2/h.mat2
 	mat.mod[N,]	<- rep(0, MM2)
 	DirDer2 	<- as.vector((rep(1,N)/N) %*% (mat.G2-mat.mod)) # MODMOD
 	minDirDer2 	<- min(DirDer2)
@@ -509,7 +511,7 @@ dir.der.psi.F <- function(supp, hpar, GRID1, GRID2, xx) {
 	temp <- c(minDirDer1, minDirDer2, DirDer0)
 	minDirDer <- min(temp)
 
-      	return(list(min=minDirDer))
+      return(list(min=minDirDer))
  
 } # End of function dir.der.psi.F
 
@@ -521,9 +523,9 @@ dir.der.psi.approx.F <- function(supp, hpar, cur.vec, GRID1, GRID2, xx) {
 	N	<- 	length(xx)
 	
 	h.vec	  	<-	sapply(xx, h, supp=supp, hpar=hpar)
-	h.mat1		<-	matrix(h.vec, N, MM1)
+	h.mat1	<-	matrix(h.vec, N, MM1)
 	cur.mat1	<-	matrix(cur.vec, N, MM1)
-	h.mat2		<-	matrix(h.vec, N, MM2)
+	h.mat2	<-	matrix(h.vec, N, MM2)
 	cur.mat2	<- 	matrix(cur.vec, N, MM2) 
 
 
@@ -532,8 +534,15 @@ dir.der.psi.approx.F <- function(supp, hpar, cur.vec, GRID1, GRID2, xx) {
 	mat.G2 	<- 	mat2.F(GRID2, xx, 2)/2  
 	mat.g2	<-	mat2.F(GRID2, xx, 1)    
 
-	DD1.t1	<-	as.vector((rep(1,N)/N) %*% (mat.G1-2*mat.g1/cur.mat1 + mat.g1*h.mat1/(cur.mat1)^2))
-	DD1.t2	<-	as.vector((rep(1,N)/N) %*% (mat.g1/cur.mat1)^2)
+	mat.mod1		<- mat.g1/cur.mat1
+	mat.mod1[N,]	<- rep(0, MM1)
+
+	mat.mod2		<- mat.g1*h.mat1/(cur.mat1)^2
+	mat.mod2[N,]	<- rep(0, MM1)
+
+
+	DD1.t1	<-	as.vector((rep(1,N)/N) %*% (mat.G1-2*mat.mod1 + mat.mod2))
+	DD1.t2	<-	as.vector((rep(1,N)/N) %*% (mat.mod1)^2)
 	DD1		<- 	DD1.t1/sqrt(DD1.t2)
 	DD1[which(DD1=="NaN")] 	<-Inf
 	minDirDer1 	<- 	min(DD1, na.rm=TRUE)		
@@ -542,10 +551,14 @@ dir.der.psi.approx.F <- function(supp, hpar, cur.vec, GRID1, GRID2, xx) {
 	DD0.t2	<-	mean(c(1/cur.vec[1:(N-1)]^2,0))   # MOD 
 	DirDer0 	<-	if(DD0.t2>0)  DD0.t1/sqrt(DD0.t2) else Inf
 
-	mat.mod1	<-	(2*mat.g2/cur.mat2 - mat.g2*h.mat2/(cur.mat2)^2)
-	mat.mod1[N,]	<-	rep(0, MM2)
-	DD2.t1		<-	as.vector((rep(1,N)/N) %*% (mat.G2-mat.mod1))  #MODMOD
-	DD2.t2		<-	as.vector((c(rep(1,N-1),0)/N) %*% (mat.g2/cur.mat2)^2)  #MOD
+	mat.mod1		<- mat.g2/cur.mat2
+	mat.mod1[N,]	<- rep(0, MM2)
+
+	mat.mod2		<- mat.g2*h.mat2/(cur.mat2)^2
+	mat.mod2[N,]	<- rep(0, MM2)
+
+	DD2.t1		<-	as.vector((rep(1,N)/N) %*% (mat.G2-2*mat.mod1+mat.mod2))  #MODMOD
+	DD2.t2		<-	as.vector((c(rep(1,N-1),0)/N) %*% (mat.mod1)^2)  #MOD
 	DD2		<- 	DD2.t1/sqrt(DD2.t2)
 	DD2[which(DD2=="NaN")] 	<-Inf
 	minDirDer2 	<- 	min(DD2, na.rm=TRUE)
@@ -580,19 +593,31 @@ ab.psi.F <-function(supp, cur.vec, xx){
 	mat.g2  <-  mat2.F(supp$eta, xx, 1)  
 	mat.G2  <-  mat2.F(supp$eta, xx, 2)/2
 
-	mat.g2[N,]	<-  rep(0, length(supp$eta))
+#	mat.g2[N,]	<-  rep(0, length(supp$eta))
 
-	D.Y1	<- if (k>0) mat.g1/cur.vec 				else numeric() 	 #MODMOD
-	D.Y0	<- if (c>0) matrix(c(1/cur.vec[1:(N-1)],0), N, 1) 	else numeric()   #MOD
-	D.Y2	<- if (m>0) mat.g2/cur.vec 				else numeric()   #MODMOD 
+	D.Y1	<- if (k>0) mat.g1/cur.vec 					else numeric() 	#MODMOD
+	D.Y0	<- if (c>0) matrix(c(1/cur.vec[1:(N-1)],0), N, 1) 	else numeric()   	#MOD
+	D.Y2	<- if (m>0) mat.g2/cur.vec 					else numeric()   	#MODMOD 
+
+	D.Y1[N,]  	<- if (k>0) rep(0, k)
+	D.Y2[N,]	<- if (m>0) rep(0,m)
 	
+	### TODO : fix this here!
 
 	D.Y	<- cbind(D.Y1, D.Y0, D.Y2)
 	A	<- (t(D.Y) %*% D.Y)/N
 
-	b1	<- if (k>0) - as.vector((rep(1,N)/N) %*% (mat.G1-2*(mat.g1/cur.vec))) 	else numeric()  #MODMOD
-	b0	<- if (c>0)   ((N-1)/N)*mean(2/cur.vec[1:(N-1)])-mean(xx) 		else numeric()  #MOD
-	b2	<- if (m>0) - as.vector((rep(1,N)/N) %*% (mat.G2-2*(mat.g2/cur.vec))) 	else numeric()  #MODMOD
+	mat.mod	<- mat.g1/cur.vec
+	mat.mod[N,]	<- rep(0,k)
+
+	b1	<- if (k>0) - as.vector((rep(1,N)/N) %*% (mat.G1-2*mat.mod)) 	else numeric()  #MODMOD
+	b0	<- if (c>0)   ((N-1)/N)*mean(2/cur.vec[1:(N-1)])-mean(xx) 			else numeric()  #MOD
+
+	mat.mod	<- mat.g2/cur.vec
+	mat.mod[N,]	<- rep(0,m)
+
+	b2	<- if (m>0) - as.vector((rep(1,N)/N) %*% (mat.G2-2*mat.mod)) 	else numeric()  #MODMOD
+
 
 	b<-c(b1,b0,b2)
 
